@@ -25,6 +25,7 @@ using namespace std;
 int keycnt=0;
 int namecnt=0;
 int poolcnt=0;
+int txcnt=0;
 
 int main(int argc, char *argv[])
 {
@@ -97,6 +98,7 @@ int main(int argc, char *argv[])
   printf("%i keys found\n",keycnt);
   printf("%i addresses found\n",namecnt);
   printf("%i pool reserved found\n",poolcnt);
+  printf("%i tx found\n",txcnt);
 
   /* We should always close our DB -- even before we exit.. */
   closeDB(myDB);
@@ -129,16 +131,39 @@ void grokData(char* key,char* value)
   string address;
   string valuedata;
 
-//printf("key length %i\n",skey.length());
-//  check keys
+  int dump=1;
+
+  if(keylen==2)
+  {
+    string keydata=skey.substr(1,2);
+    if(keydata == "tx")
+    {
+      txcnt++;
+      dump=0;
+    }
+  }
   if(keylen==3)
   {
     string keydata=skey.substr(1,3);
     if(keydata == "key")
     {
+      string key="";
       keycnt++;
-      int sublen=(unsigned char)skey[6];
-printf("next char %i\n",sublen);
+      int sublen=(unsigned char)skey[4];
+      for(int t=0;t<sublen;t++)
+      {
+        unsigned char aa=int(skey[5+t]);
+        key=key+toHex(aa);
+      }
+      if(skey.length()<39)
+      {
+        int diff=skey.length()-5;
+        key=key.substr(0,diff*2);
+        printf("damaged key -- %s\n",key.c_str());
+      }
+      else 
+        printf("key %s\n",key.c_str());
+    dump=0;
     }
   }
 
@@ -163,21 +188,24 @@ printf("next char %i\n",sublen);
         namecnt++;
       }
 printf("user %s  address %s\n",valuedata.c_str(),address.c_str());
+dump=0;
     }
     else if(keydata == "pool")
     {
       poolcnt++;
+dump=0;
     }
     else
     {// != 'name'
     printf(" keyname %s\n",keydata.c_str());
     }
   }
-  else
-  { // keylen !=4
+
+  if(dump==1)
+  {
 //printf("%s  %s\n",skey.c_str(),svalue.c_str());
 //printf("key length=%i \n",keylen);
-HexDump(key,skey.length());
+    HexDump(key,skey.length());
   }
 }
 
