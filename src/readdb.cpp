@@ -27,6 +27,9 @@ int namecnt=0;
 int poolcnt=0;
 int txcnt=0;
 
+// base58
+char* B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
 int main(int argc, char *argv[])
 {
   DB *myDB; 
@@ -150,16 +153,16 @@ void grokData(char* key,char* value)
       string key="";
       keycnt++;
       int sublen=(unsigned char)skey[4];
-      for(int t=0;t<sublen;t++)
+      for(int t=0;t<sublen-1;t++)
       {
-        unsigned char aa=int(skey[5+t]);
+        unsigned char aa=int(skey[6+t]);
         key=key+toHex(aa);
       }
       if(skey.length()<38)
       {
-        int diff=skey.length()-5;
+        int diff=skey.length()-6;
         key=key.substr(0,diff*2);
-        printf("damaged key -- %s\n",key.c_str());
+        printf("  damaged key -- %s\n",key.c_str());
       }
       else 
         printf("key %s\n",key.c_str());
