@@ -155,7 +155,7 @@ void grokData(char* key,char* value)
         unsigned char aa=int(skey[5+t]);
         key=key+toHex(aa);
       }
-      if(skey.length()<39)
+      if(skey.length()<38)
       {
         int diff=skey.length()-5;
         key=key.substr(0,diff*2);
