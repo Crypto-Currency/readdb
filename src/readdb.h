@@ -14,7 +14,9 @@
 void zeroDBT(DBT *dbt);
 void closeDB(DB *dbp);
 void grokData(char* key,char* value);
-void HexDump(char *pBuffer, int size);
+void HexDump(char* pBuffer, int size);
+void hdump(char* key,char* value);
+std::string HexString(char *pBuffer, int size);
 std::string toHex(unsigned int n);
 
 

@@ -23,6 +23,7 @@ using namespace std;
 
 
 int keycnt=0;
+int damkeycnt=0;
 int namecnt=0;
 int poolcnt=0;
 int txcnt=0;
@@ -82,6 +83,7 @@ int main(int argc, char *argv[])
       case 0:
 //    if(i<100)
         grokData((char*)key.data,(char*)value.data);
+//          hdump((char*) key.data, (char*) value.data);
         break;
       case DB_NOTFOUND:
         printf("  Hmmm.. Record not found..\n");
@@ -99,6 +101,7 @@ int main(int argc, char *argv[])
   printf("Found %d records\n", i);
   printf("encountered %d errors\n", 100-maxErr);
   printf("%i keys found\n",keycnt);
+  printf("%i damaged keys found\n",damkeycnt);
   printf("%i addresses found\n",namecnt);
   printf("%i pool reserved found\n",poolcnt);
   printf("%i tx found\n",txcnt);
@@ -121,8 +124,20 @@ void closeDB(DB *dbp) {
   }
 }
 
-void zeroDBT(DBT *dbt) {
+void zeroDBT(DBT *dbt)
+{
   memset(dbt, 0, sizeof(DBT));  
+}
+
+
+void hdump(char* key,char* value)
+{
+  string skey=key;
+  string svalue=value;
+  HexDump(key,skey.length());
+  if(svalue.length()>1)
+    HexDump(value,svalue.length());
+
 }
 
 void grokData(char* key,char* value)
@@ -152,6 +167,7 @@ void grokData(char* key,char* value)
     {
       string key="";
       keycnt++;
+      valuedata=svalue.substr(1,valuelen);
       int sublen=(unsigned char)skey[4];
       for(int t=0;t<sublen-1;t++)
       {
@@ -162,10 +178,13 @@ void grokData(char* key,char* value)
       {
         int diff=skey.length()-6;
         key=key.substr(0,diff*2);
-        printf("  damaged key -- %s\n",key.c_str());
+        printf("*damaged key -- %s\n",key.c_str());
+        damkeycnt++;
       }
       else 
         printf("key %s\n",key.c_str());
+    string hstring=HexString(value,svalue.length());
+        printf("value %s\n",hstring.c_str());
     dump=0;
     }
   }
@@ -188,9 +207,9 @@ void grokData(char* key,char* value)
       else
       {
         valuedata="<<missing>>";
-        namecnt++;
       }
-printf("user %s  address %s\n",valuedata.c_str(),address.c_str());
+//printf("user %s  address %s\n",valuedata.c_str(),address.c_str());
+printf("address %s  user %s\n",address.c_str(),valuedata.c_str());
 dump=0;
     }
     else if(keydata == "pool")
@@ -253,6 +272,17 @@ c=ct.substr(1,2);
   }
   c="-----------------------------------------------------------------------";
   printf("%s\n",c.c_str());
+}
+
+string HexString(char *pBuffer, int size)
+{
+  string c="";
+  for(int t=0;t<size;t++)
+  {
+    unsigned char cc=int(pBuffer[t]);
+    c=c+toHex(cc);
+  }
+  return c;
 }
 
 string toHex(unsigned int n)
